@@ -1,0 +1,143 @@
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+local Window = Rayfield:CreateWindow({
+    Name = "Zaza Hub | Ultimate Safety & Combat",
+    Icon = 0,
+    LoadingTitle = "Zaza Hub",
+    LoadingSubtitle = "Staff Watchlist & Mountain TP Active",
+    Theme = "Green",
+    ConfigurationSaving = { Enabled = true, FolderName = "ZazaHubConfig", FileName = "Big Hub" }
+})
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local TeleportService = game:GetService("TeleportService")
+local HttpService = game:GetService("HttpService")
+local LocalPlayer = Players.LocalPlayer
+local Camera = workspace.CurrentCamera
+
+_G.TracerEnabled = false
+_G.BoxEnabled = false
+_G.HitboxEnabled = false
+_G.HitboxSize = 2
+_G.AimbotEnabled = false
+_G.AimbotSmoothing = 0.2
+_G.AimbotPart = "Head"
+_G.SafetyEnabled = true
+_G.AutoLeave = false
+
+_G.Watchlist = {
+    "SuperRetroMann",
+    "derpderptwo",
+    "lazyWice",
+    "WarioLandOnPC_1",
+    "Zenuuxfan",
+    "KingElston100"
+}
+
+local MainTab = Window:CreateTab("Main", 4483362458)
+local CombatTab = Window:CreateTab("Combat", 4483362458)
+local VisualsTab = Window:CreateTab("Visuals", 4483362458)
+local TPTab = Window:CreateTab("Teleports", 4483362458)
+local SafetyTab = Window:CreateTab("Safety", 4483362458)
+
+MainTab:CreateButton({
+    Name = "Inf ammo for desert eagle",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/fwadawdawdada/nig/refs/heads/main/source"))()
+    end,
+})
+
+CombatTab:CreateToggle({
+    Name = "Lock-On Aimbot",
+    CurrentValue = false,
+    Callback = function(v) _G.AimbotEnabled = v end,
+})
+
+CombatTab:CreateSlider({
+    Name = "Hitbox Size",
+    Range = {1, 50},
+    Increment = 1,
+    CurrentValue = 2,
+    Callback = function(v) _G.HitboxSize = v end,
+})
+
+CombatTab:CreateToggle({
+    Name = "Enable Big Hitboxes",
+    CurrentValue = false,
+    Callback = function(v) _G.HitboxEnabled = v end,
+})
+
+VisualsTab:CreateToggle({
+    Name = "Tracer ESP",
+    CurrentValue = false,
+    Callback = function(v) _G.TracerEnabled = v end,
+})
+
+TPTab:CreateButton({
+    Name = "Mountain",
+    Callback = function()
+        if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-6.39, 199.89, -311.91)
+        end
+    end,
+})
+
+-- // SAFETY TAB \\ --
+SafetyTab:CreateToggle({
+    Name = "Staff Detector",
+    CurrentValue = true,
+    Callback = function(v) _G.SafetyEnabled = v end,
+})
+
+SafetyTab:CreateToggle({
+    Name = "Auto-Leave on Detection",
+    CurrentValue = false,
+    Callback = function(v) _G.AutoLeave = v end,
+})
+
+SafetyTab:CreateButton({
+    Name = "Server Hop",
+    Callback = function()
+        local Servers = HttpService:JSONDecode(game:HttpGet("https://games.roblox.com/v1/games/" .. game.PlaceId .. "/servers/Public?sortOrder=Asc&limit=100"))
+        for _, s in pairs(Servers.data) do
+            if s.playing < s.maxPlayers and s.id ~= game.JobId then
+                TeleportService:TeleportToPlaceInstance(game.PlaceId, s.id, LocalPlayer)
+                break
+            end
+        end
+    end,
+})
+
+local StaffLabel = SafetyTab:CreateLabel("Scanning...")
+
+task.spawn(function()
+    while task.wait(2) do
+        if _G.SafetyEnabled then
+            for _, player in pairs(Players:GetPlayers()) do
+                for _, name in pairs(_G.Watchlist) do
+                    if player.Name == name then
+                        StaffLabel:Set("⚠️ DETECTED: " .. name)
+                        Rayfield:Notify({Title = "STAFF ALERT", Content = name .. " is in the server!"})
+                        if _G.AutoLeave then LocalPlayer:Kick("Staff Detected: " .. name) end
+                    end
+                end
+            end
+        end
+    end
+end)
+
+RunService.RenderStepped:Connect(function()
+    if _G.HitboxEnabled then
+        for _, p in pairs(Players:GetPlayers()) do
+            if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("Head") then
+                p.Character.Head.Size = Vector3.new(_G.HitboxSize, _G.HitboxSize, _G.HitboxSize)
+                p.Character.Head.Transparency = 0.5
+                p.Character.Head.CanCollide = false
+            end
+        end
+    end
+end)
+
+Rayfield:Notify({Title = "Zaza Hub", Content = "Script Loaded Successfully"})
