@@ -1,0 +1,171 @@
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+local Window = Rayfield:CreateWindow({
+    Name = "Zaza Hub | Untitled Shooter 2",
+    Icon = 0,
+    LoadingTitle = "Zaza Hub | Untitled Shooter 2",
+    LoadingSubtitle = "Untitled Shooter 2",
+    Theme = "Green",
+    ConfigurationSaving = { Enabled = true, FolderName = "ZazaHubConfig", FileName = "Big Hub" }
+})
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local LocalPlayer = Players.LocalPlayer
+local Camera = workspace.CurrentCamera
+
+_G.TracerEnabled = false
+_G.BoxEnabled = false
+_G.HitboxEnabled = false
+_G.HitboxSize = 2
+_G.AimbotEnabled = false
+_G.AimbotSmoothing = 0.2
+_G.AimbotPart = "Head"
+_G.SafetyEnabled = true
+_G.AutoLeave = false
+
+_G.Watchlist = {
+    "SuperRetroMann",
+    "derpderptwo",
+    "lazyWice",
+    "WarioLandOnPC_1",
+    "Zenuuxfan",
+    "KingElston100"
+}
+
+local ESP_Table = {} 
+
+local MainTab = Window:CreateTab("Main", 4483362458)
+local CombatTab = Window:CreateTab("Combat", 4483362458)
+local VisualsTab = Window:CreateTab("Visuals", 4483362458)
+local TPTab = Window:CreateTab("Teleports", 4483362458)
+local SafetyTab = Window:CreateTab("Safety", 4483362458)
+
+MainTab:CreateButton({
+    Name = "Inf ammo for desert eagle",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/fwadawdawdada/nig/refs/heads/main/source"))()
+    end,
+})
+
+CombatTab:CreateToggle({
+    Name = "Lock-On Aimbot (Right Click)",
+    CurrentValue = false,
+    Callback = function(Value) _G.AimbotEnabled = Value end,
+})
+
+CombatTab:CreateSlider({
+    Name = "Aimbot Smoothness",
+    Range = {0, 1},
+    Increment = 0.05,
+    CurrentValue = 0.2,
+    Callback = function(Value) _G.AimbotSmoothing = Value end,
+})
+
+CombatTab:CreateToggle({
+    Name = "Enable Big Hitboxes",
+    CurrentValue = false,
+    Callback = function(Value) _G.HitboxEnabled = Value end,
+})
+
+CombatTab:CreateSlider({
+    Name = "Hitbox Size",
+    Range = {1, 50},
+    Increment = 1,
+    CurrentValue = 2,
+    Callback = function(Value) _G.HitboxSize = Value end,
+})
+
+VisualsTab:CreateToggle({
+    Name = "Tracer ESP",
+    CurrentValue = false,
+    Callback = function(Value) _G.TracerEnabled = Value end,
+})
+
+VisualsTab:CreateToggle({
+    Name = "Box ESP",
+    CurrentValue = false,
+    Callback = function(Value) _G.BoxEnabled = Value end,
+})
+
+TPTab:CreateButton({
+    Name = "Mountain",
+    Callback = function()
+        if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-6.39, 199.89, -311.91)
+        end
+    end,
+})
+
+SafetyTab:CreateToggle({
+    Name = "Staff Detector Active",
+    CurrentValue = true,
+    Callback = function(Value) _G.SafetyEnabled = Value end,
+})
+
+SafetyTab:CreateToggle({
+    Name = "Auto-Leave on Detection",
+    CurrentValue = false,
+    Callback = function(Value) _G.AutoLeave = Value end,
+})
+
+local StaffLabel = SafetyTab:CreateLabel("Scanning for watchlist...")
+
+local function getClosestPlayer()
+    local target = nil
+    local dist = math.huge
+    local center = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
+    for _, v in pairs(Players:GetPlayers()) do
+        if v ~= LocalPlayer and v.Character and v.Character:FindFirstChild(_G.AimbotPart) then
+            local screenPos, onScreen = Camera:WorldToViewportPoint(v.Character[_G.AimbotPart].Position)
+            if onScreen then
+                local mag = (Vector2.new(screenPos.X, screenPos.Y) - center).Magnitude
+                if mag < dist then dist = mag; target = v end
+            end
+        end
+    end
+    return target
+end
+
+task.spawn(function()
+    while task.wait(1) do
+        if _G.SafetyEnabled then
+            for _, player in pairs(Players:GetPlayers()) do
+                for _, targetName in pairs(_G.Watchlist) do
+                    if player.Name == targetName or player.DisplayName == targetName then
+                        StaffLabel:Set("⚠️ NIGGER DETECTED: " .. player.Name)
+                        Rayfield:Notify({Title = "yo my nigga", Content = player.Name .. " is here"})
+                        if _G.AutoLeave then LocalPlayer:Kick("Safety: " .. player.Name .. " detected.") end
+                    end
+                end
+            end
+        end
+    end
+end)
+
+RunService.RenderStepped:Connect(function()
+    if _G.AimbotEnabled and UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton2) then
+        local target = getClosestPlayer()
+        if target and target.Character and target.Character:FindFirstChild(_G.AimbotPart) then
+            local lookAt = CFrame.new(Camera.CFrame.Position, target.Character[_G.AimbotPart].Position)
+            Camera.CFrame = Camera.CFrame:Lerp(lookAt, 1 - _G.AimbotSmoothing)
+        end
+    end
+
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character then
+            local head = player.Character:FindFirstChild("Head")
+            if head then
+                if _G.HitboxEnabled then
+                    head.Size = Vector3.new(_G.HitboxSize, _G.HitboxSize, _G.HitboxSize)
+                    head.Transparency = 0.6
+                    head.CanCollide = false 
+                else
+                    head.Size = Vector3.new(1, 1, 1)
+                    head.Transparency = 0
+                end
+            end
+        end
+    end
+end)
